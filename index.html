@@ -1,7 +1,8 @@
 <html>
   <body>
-    <p id='top1' style='position:absolute;left:110px;top:0px'>space bar : fire</p>
-    <p ID='top2' style='position:absolute;left:110px;top:10px'><- and -> : change direction</p>
+    <p id='top1' style='position:absolute;left:150px;top:0px'>space bar : fire</p>
+    <p id='top2' style='position:absolute;left:150px;top:10px'><- and -> : change direction</p>
+    <p id='score' style='position:absolute;left:150px;top:530px'>score : 0</p>
     <div id='body' style='position:absolute;top:40px'></div>
   </body>
   <script>
@@ -18,6 +19,8 @@
   const dom = []
 
   var shipDirection=1
+  var points=0
+
   const crafts=[]
   const shots =[]
 
@@ -105,6 +108,12 @@
       dom[b.x+c.x][b.y+c.y].style.background=bgColor
     })
     crafts.splice(i,1)
+    console.log('boom')
+    addPoint()
+  }
+  addPoint=()=>{
+    points++
+    document.getElementById('score').innerText='score : '+points
   }
   renderShip=()=>{
     ship.renderLast().forEach((p)=>dom[p.x][p.y].style.background=bgColor)
