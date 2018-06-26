@@ -8,7 +8,7 @@
   <script>
   const b = document.getElementById('body')
   const bgColor = 'black'
-  const craftLife = 300
+  const craftLife = 1000
   const craftColor = 'green'
   const shipColor = 'red'
   const shotColor = 'white'
@@ -99,6 +99,7 @@
         if(s.x==c.x && s.y==c.y){
           deleteCraft(c,i)
           deleteShot(j)
+          addPoint()
         }
       })
     })
@@ -109,7 +110,6 @@
     })
     crafts.splice(i,1)
     console.log('boom')
-    addPoint()
   }
   addPoint=()=>{
     points++
@@ -155,6 +155,6 @@
       }
     }
   var process = window.setInterval(tick,10)
-  var spawning = window.setInterval(spawnCraft,10000)
+  var spawning = window.setInterval(spawnCraft,2000)
   </script>
 </html>
