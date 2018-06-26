@@ -1,0 +1,151 @@
+<html>
+  <body id='body'>
+
+  </body>
+  <script>
+  const b = document.getElementById('body')
+  const bgColor = 'black'
+  const craftLife = 300
+  const craftColor = 'green'
+  const shipColor = 'red'
+  const shotColor = 'white'
+  const pixelSize = 5
+  const width = 100
+  const height = 140
+  const boardBorder = 5
+  const dom = []
+
+  var shipDirection=1
+  var crafts=[]
+
+  for(var x=0;x<width;x++){
+    var row = []
+    for(var y=0;y<height;y++){
+      const cell = document.createElement('div')
+      cell.style.cssText='outline:thin solid;height:'+pixelSize+'px;width:'+pixelSize+'px;background:'+bgColor+';position:absolute'
+        cell.style.left= (x*(pixelSize)+boardBorder) + 'px'
+        cell.style.top = (y*(pixelSize)+boardBorder) + 'px'
+        b.appendChild(cell)
+        row.push(cell)
+    }
+    dom.push(row)
+  }
+
+  var index=0
+  const shots =[]
+
+  const craft = [
+    {x:0,y:0},
+    {x:1,y:0},
+    {x:-1,y:0},
+    {x:1,y:-1},
+    {x:-1,y:-1},
+  ]
+
+  const ship = {
+    position : {x:50,y:height-10},
+    lastPosition : {x:50,y:height-10},
+    shape : [
+      {x:0,y:0},
+      {x:-2,y:0},
+      {x:-1,y:0},
+      {x:1,y:0},
+      {x:2,y:0},
+      {x:-1,y:-1},
+      {x:1,y:-1},
+      {x:0,y:-2},
+      {x:0,y:-2},
+    ],
+    render(){
+      return ship.shape.map((p)=>({x:p.x+ship.position.x,y:p.y+ship.position.y}))
+    },
+    renderLast(){
+      return ship.shape.map((p)=>({x:p.x+ship.lastPosition.x,y:p.y+ship.lastPosition.y}))      
+    }
+  }
+  ran=(x)=>{
+    return ~~(Math.random()*x)
+  }
+  fire=()=>{
+    shots.push({id:index++,x:ship.position.x,y:height-14,direction:-1})
+  }
+  advanceShots=()=>{
+    shots.forEach((s,i)=>{
+      dom[s.x][s.y].style.background=bgColor
+      if(s.y==1){s.direction = -(s.direction)}
+      s.y+=s.direction
+      dom[s.x][s.y].style.background=shotColor
+      if(s.y==height-1){deleteShot(i)}
+    })
+  }
+  deleteShot=(i)=>{
+    let {x,y}=shots[i]
+    dom[x][y].style.background=bgColor
+    shots.splice(i,1)
+  }
+  spawnCraft=()=>{
+    const position = {x:ran(width),y:ran(height),time:0}
+    crafts.push(position)
+    craft.forEach((c)=>dom[c.x+position.x][c.y+position.y].style.background=craftColor)
+  }
+  advanceCrafts=()=>{
+    crafts.forEach((c,i)=>{
+      c.time++ > craftLife && deleteCraft(c,i)
+      shots.forEach((s,j)=>{
+        if(s.x==c.x && s.y==c.y){
+          deleteCraft(c,i)
+          deleteShot(j)
+        }
+      })
+    })
+  }
+  deleteCraft=(c,i)=>{
+    craft.forEach((b)=>{
+      dom[b.x+c.x][b.y+c.y].style.background=bgColor
+    })
+    crafts.splice(i,1)
+    console.log('boom')
+  }
+  renderShip=()=>{
+    ship.renderLast().forEach((p)=>dom[p.x][p.y].style.background=bgColor)
+    ship.render().forEach((p)=>dom[p.x][p.y].style.background=shipColor)
+  }
+  strafe=(d)=>{
+    if(ship.position.x+d > 1 && ship.position.x+d < width-2){
+      ship.lastPosition=ship.position
+      ship.position={x:ship.position.x+d,y:ship.position.y}
+    }
+  }
+  setShipDirection=(d)=>{
+    shipDirection=d
+  }
+  checkForShipHit=()=>{
+    let shipBits = ship.render().map((b)=>dom[b.x][b.y])
+    let shotBits = shots.map((b)=>dom[b.x][b.y])
+    console.log(shipBits)
+    console.log(shotBits)
+    shipBits.forEach((b)=>{
+      shotBits.includes(b) && blowUpShip()})
+  }
+  blowUpShip=()=>{
+    clearInterval(process)
+    clearInterval(spawning)
+  }
+  tick=()=>{
+    strafe(shipDirection)
+    checkForShipHit()
+    renderShip()
+    advanceShots()
+    advanceCrafts()
+  }
+  document.onkeydown=(e)=>{
+      switch (e.keyCode) {
+          case 37:setShipDirection(-1);break
+          case 39:setShipDirection(1);break
+          case 32:fire();break
+      }
+    }
+  var process = window.setInterval(tick,10)
+  var spawning = window.setInterval(spawnCraft,10000)
+  </script>
+</html>
