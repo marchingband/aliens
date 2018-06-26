@@ -122,8 +122,6 @@
   checkForShipHit=()=>{
     let shipBits = ship.render().map((b)=>dom[b.x][b.y])
     let shotBits = shots.map((b)=>dom[b.x][b.y])
-    console.log(shipBits)
-    console.log(shotBits)
     shipBits.forEach((b)=>{
       shotBits.includes(b) && blowUpShip()})
   }
