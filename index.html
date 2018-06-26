@@ -18,7 +18,8 @@
   const dom = []
 
   var shipDirection=1
-  var crafts=[]
+  const crafts=[]
+  const shots =[]
 
   for(var x=0;x<width;x++){
     var row = []
@@ -32,9 +33,6 @@
     }
     dom.push(row)
   }
-
-  var index=0
-  const shots =[]
 
   const craft = [
     {x:0,y:0},
@@ -65,11 +63,12 @@
       return ship.shape.map((p)=>({x:p.x+ship.lastPosition.x,y:p.y+ship.lastPosition.y}))      
     }
   }
+
   ran=(x)=>{
     return ~~(Math.random()*x)
   }
   fire=()=>{
-    shots.push({id:index++,x:ship.position.x,y:height-14,direction:-1})
+    shots.push({x:ship.position.x,y:height-14,direction:-1})
   }
   advanceShots=()=>{
     shots.forEach((s,i)=>{
@@ -106,7 +105,6 @@
       dom[b.x+c.x][b.y+c.y].style.background=bgColor
     })
     crafts.splice(i,1)
-    console.log('boom')
   }
   renderShip=()=>{
     ship.renderLast().forEach((p)=>dom[p.x][p.y].style.background=bgColor)
