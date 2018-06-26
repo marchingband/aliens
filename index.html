@@ -1,7 +1,7 @@
 <html>
   <body>
-    <p style='position:absolute;left:110px;top:0px'>space bar : fire</p>
-    <p style='position:absolute;left:110px;top:10px'><- and -> : change direction</p>
+    <p id='top1' style='position:absolute;left:110px;top:0px'>space bar : fire</p>
+    <p ID='top2' style='position:absolute;left:110px;top:10px'><- and -> : change direction</p>
     <div id='body' style='position:absolute;top:40px'></div>
   </body>
   <script>
@@ -130,6 +130,8 @@
   blowUpShip=()=>{
     clearInterval(process)
     clearInterval(spawning)
+    document.getElementById('top1').innerText='G*A*M*E O*V*E*R'
+    document.getElementById('top2').innerText='refresh browser to play'
   }
   tick=()=>{
     strafe(shipDirection)
