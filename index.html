@@ -6,9 +6,7 @@
     <div id='body' style='position:absolute;top:40px'></div>
   </body>
   <script>
-  const b = document.getElementById('body')
   const bgColor = 'black'
-  const craftLife = 300
   const craftColor = 'green'
   const shipColor = 'red'
   const shotColor = 'white'
@@ -16,11 +14,13 @@
   const width = 100
   const height = 100
   const boardBorder = 5
-  const dom = []
+  const craftLife = 300
 
   var shipDirection=1
   var points=0
 
+  const b = document.getElementById('body')
+  const dom = []
   const crafts=[]
   const shots =[]
 
@@ -109,7 +109,6 @@
       dom[b.x+c.x][b.y+c.y].style.background=bgColor
     })
     crafts.splice(i,1)
-    console.log('boom')
   }
   addPoint=()=>{
     points++
