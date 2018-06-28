@@ -3,6 +3,7 @@
     <p id='top1' style='position:absolute;left:150px;top:0px'>space bar : fire</p>
     <p id='top2' style='position:absolute;left:150px;top:10px'><- and -> : change direction</p>
     <p id='score' style='position:absolute;left:150px;top:530px'>score : 0</p>
+    <p id='level' style='position:absolute;left:250px;top:530px'>level : 0</p>
     <div id='body' style='position:absolute;top:40px'></div>
   </body>
   <script>
@@ -14,10 +15,11 @@
   const width = 100
   const height = 100
   const boardBorder = 5
-  const craftLife = 300
-
+  
+  var speed=2000
   var shipDirection=1
   var points=0
+  var level=0
 
   const b = document.getElementById('body')
   const dom = []
@@ -75,33 +77,59 @@
   }
   advanceShots=()=>{
     shots.forEach((s,i)=>{
-      dom[s.x][s.y].style.background=bgColor
-      if(s.y==1){s.direction = -(s.direction)}
-      s.y+=s.direction
-      dom[s.x][s.y].style.background=shotColor
-      if(s.y==height-1){deleteShot(i)}
+      if(s.y>(height-1)){
+        deleteShot(i)
+        lowerCrafts()
+      } else {
+        dom[s.x][s.y] && (dom[s.x][s.y].style.background=bgColor)
+        if(s.y==1){s.direction = -(s.direction)}
+        s.y+=s.direction
+        dom[s.x][s.y] && (dom[s.x][s.y].style.background=shotColor)
+        checkForShipHit(s)
+        checkForCraftHit(s,i)
+      }
+    })
+  }
+  lowerCrafts=()=>{
+    crafts.forEach((c)=>{
+      if(c.y<(height-1)){
+        craft.forEach((b)=>{
+          dom[b.x+c.x][b.y+c.y] && (dom[b.x+c.x][b.y+c.y].style.background=bgColor)
+        })
+        c.y++
+        craft.forEach((b)=>{
+          dom[b.x+c.x][b.y+c.y] && (dom[b.x+c.x][b.y+c.y].style.background=craftColor)
+        })
+      }else{
+        craft.forEach((b)=>{
+          dom[b.x+c.x][b.y+c.y] && (dom[b.x+c.x][b.y+c.y].style.background='yellow')
+        })
+        blowUpShip()
+      }
     })
   }
   deleteShot=(i)=>{
     let {x,y}=shots[i]
-    dom[x][y].style.background=bgColor
+    dom[x][y] && (dom[x][y].style.background=bgColor)
     shots.splice(i,1)
   }
   spawnCraft=()=>{
-    const position = {x:ran(width),y:ran(height),time:0}
+    const position = {x:ran(width-20)+10,y:ran(height-30)+10,time:0}
     crafts.push(position)
     craft.forEach((c)=>dom[c.x+position.x][c.y+position.y].style.background=craftColor)
   }
   advanceCrafts=()=>{
     crafts.forEach((c,i)=>{
       c.time++ > craftLife && deleteCraft(c,i)
-      shots.forEach((s,j)=>{
-        if(s.x==c.x && s.y==c.y){
-          deleteCraft(c,i)
-          deleteShot(j)
-          addPoint()
-        }
-      })
+    })
+  }
+  checkForCraftHit=(s,i)=>{
+    crafts.forEach((c,j)=>{
+      if(s.x<c.x+3 && s.x>c.x-3 && s.y==c.y){
+        deleteCraft(c,j)
+        deleteShot(i)
+        addPoint()
+      }
     })
   }
   deleteCraft=(c,i)=>{
@@ -111,8 +139,18 @@
     crafts.splice(i,1)
   }
   addPoint=()=>{
-    points++
+    points+=1
     document.getElementById('score').innerText='score : '+points
+    if(points>(level*10)){levelUp()}
+    console.log('point')
+  }
+  levelUp=()=>{
+    level++
+    clearInterval(spawning)
+    speed= level<40 ? speed-30 : speed - 5
+    document.getElementById('level').innerText='level : '+level
+    spawning = window.setInterval(spawnCraft,speed)
+    
   }
   renderShip=()=>{
     ship.renderLast().forEach((p)=>dom[p.x][p.y].style.background=bgColor)
@@ -127,24 +165,26 @@
   setShipDirection=(d)=>{
     shipDirection=d
   }
-  checkForShipHit=()=>{
-    let shipBits = ship.render().map((b)=>dom[b.x][b.y])
-    let shotBits = shots.map((b)=>dom[b.x][b.y])
-    shipBits.forEach((b)=>{
-      shotBits.includes(b) && blowUpShip()})
+  checkForShipHit=(s)=>{
+    if(s.x>ship.position.x-3 &&
+      s.x<ship.position.x+3 &&
+      s.y>height-13 &&
+      s.y<height-10){
+      ship.render().forEach((p)=>dom[p.x][p.y].style.background='yellow')
+      blowUpShip()
+    }
   }
   blowUpShip=()=>{
-    clearInterval(process)
+    window.cancelAnimationFrame(process)
     clearInterval(spawning)
     document.getElementById('top1').innerText='G*A*M*E O*V*E*R'
     document.getElementById('top2').innerText='refresh browser to play'
   }
   tick=()=>{
+    process = requestAnimationFrame(tick)
     strafe(shipDirection)
-    checkForShipHit()
     renderShip()
     advanceShots()
-    advanceCrafts()
   }
   document.onkeydown=(e)=>{
       switch (e.keyCode) {
@@ -153,7 +193,8 @@
           case 32:fire();break
       }
     }
-  var process = window.setInterval(tick,10)
+  // var process = window.setInterval(tick,10)
+  var process = requestAnimationFrame(tick)
   var spawning = window.setInterval(spawnCraft,2000)
   </script>
 </html>
