@@ -8,11 +8,14 @@
   </body>
   <script>
   const bgColor = 'black',
-    craftColor  = 'green',
-    onceHitCraftColor = 'blue',
-    twiceHitCraftColor = 'orange',
+    craftColors  = ['green','blue','orange']
+    // onceHitCraftColor = 'blue',
+    // twiceHitCraftColor = 'orange',
     shipColor   = 'red',
     shotColor   = 'white',
+    bombColor   = 'red',
+    bombSize    = 3,
+    bombTime    = 300,
     pixelSize   = 5,
     width       = 100,
     height      = 100,
@@ -76,7 +79,7 @@
     return ~~(Math.random()*x)
   }
   fire=()=>{
-    shots.push({x:ship.position.x,y:height-14,direction:-1})
+    shots.push({x:ship.position.x,y:height-14,direction:-1,bomb:false})
   }
   advanceShots=()=>{
     shots.forEach((s,i)=>{
@@ -87,7 +90,7 @@
         dom[s.x][s.y] && (dom[s.x][s.y].style.background=bgColor)
         if(s.y==1){s.direction = -(s.direction)}
         s.y+=s.direction
-        dom[s.x][s.y] && (dom[s.x][s.y].style.background=shotColor)
+        dom[s.x][s.y] && (dom[s.x][s.y].style.background=s.bomb?bombColor:shotColor)
         checkForShipHit(s)
         checkForCraftHit(s,i)
       }
@@ -98,12 +101,7 @@
       if(c.y<(height-1)){
         craft.forEach((b)=>dom[b.x+c.x][b.y+c.y] && (dom[b.x+c.x][b.y+c.y].style.background=bgColor))
         c.y++
-        craft.forEach((b)=>{
-          switch (c.hits){
-            case 0:(dom[b.x+c.x][b.y+c.y] && (dom[b.x+c.x][b.y+c.y].style.background=craftColor));break
-            case 1:(dom[b.x+c.x][b.y+c.y] && (dom[b.x+c.x][b.y+c.y].style.background=onceHitCraftColor));break
-            case 2:(dom[b.x+c.x][b.y+c.y] && (dom[b.x+c.x][b.y+c.y].style.background=twiceHitCraftColor));break
-        }})
+        craft.forEach((b)=>dom[b.x+c.x][b.y+c.y] && (dom[b.x+c.x][b.y+c.y].style.background=craftColors[c.hits]))
       }else{
         craft.forEach((b)=>dom[b.x+c.x][b.y+c.y] && (dom[b.x+c.x][b.y+c.y].style.background='yellow'))
         blowUpShip()
@@ -116,9 +114,9 @@
     shots.splice(i,1)
   }
   spawnCraft=()=>{
-    const newCraft = {hits:0,x:ran(width-20)+10,y:ran(height-30)+10,time:0}
+    const newCraft = {age:0,hits:0,x:ran(width-20)+10,y:ran(height-30)+10}
     crafts.push(newCraft)
-    craft.forEach((c)=>dom[c.x+newCraft.x][c.y+newCraft.y].style.background=craftColor)
+    craft.forEach((c)=>dom[c.x+newCraft.x][c.y+newCraft.y].style.background=craftColors[0])
   }
   checkForCraftHit=(s,i)=>{
     crafts.forEach((c,j)=>{
@@ -129,17 +127,12 @@
     })
   }
   hitCraft=(c,j)=>{
-    c.hits++
-    switch(c.hits){
-      case 1:craft.forEach((b)=>dom[b.x+c.x][b.y+c.y].style.background=onceHitCraftColor);break
-      case 2:craft.forEach((b)=>dom[b.x+c.x][b.y+c.y].style.background=twiceHitCraftColor);break
-      case 3:deleteCraft(c,j);break
-    }
+    ++c.hits < 3
+    ? craft.forEach((b)=>dom[b.x+c.x][b.y+c.y].style.background=craftColors[c.hits])
+    : deleteCraft(c,j)
   }
   deleteCraft=(c,i)=>{
-    craft.forEach((b)=>{
-      dom[b.x+c.x][b.y+c.y].style.background=bgColor
-    })
+    craft.forEach((b)=>dom[b.x+c.x][b.y+c.y].style.background=bgColor)
     crafts.splice(i,1)
     addPoint()
   }
@@ -152,6 +145,7 @@
     level++
     clearInterval(spawning)
     speed= level<40 ? speed-30 : speed - 5
+    bombTime= level<40 ? bombTime - 10 : bombTime
     document.getElementById('level').innerText='level : '+level
     spawning = window.setInterval(spawnCraft,speed)
   }
@@ -167,10 +161,20 @@
   }
   setShipDirection=(d)=>shipDirection=d
   checkForShipHit=(s)=>{
-    if(s.x>ship.position.x-3 && s.x<ship.position.x+3 && s.y>height-13 && s.y<height-10){
+    if(s.x>ship.position.x-3 &&
+      s.x<ship.position.x+3 &&
+      s.y>height-13 &&
+      s.y<height-10){
       ship.render().forEach((p)=>dom[p.x][p.y].style.background='yellow')
       blowUpShip()
     }
+  }
+  ageCrafts=()=>crafts.forEach((c,i)=>{++c.age > bombTime && dropBomb(c)})
+  dropBomb=(c)=>{
+    for(let i=0;i<bombSize;i++){
+      shots.push({x:c.x,y:c.y+2+(i*2),direction:1,bomb:true})
+    }
+    c.age=100
   }
   blowUpShip=()=>{
     window.cancelAnimationFrame(process)
@@ -183,6 +187,7 @@
     strafe(shipDirection)
     renderShip()
     advanceShots()
+    ageCrafts()
   }
   document.onkeydown=(e)=>{
       switch (e.keyCode) {
